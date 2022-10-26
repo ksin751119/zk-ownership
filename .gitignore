@@ -1,0 +1,20 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+deployments
+
+# Hardhat files
+cache
+artifacts
+
+# vscode settings
+.vscode
+
+# lol macs
+.DS_Store
+
+# Foundry build directory and cache
+out/
+forge-cache/
