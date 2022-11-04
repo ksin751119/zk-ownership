@@ -46,6 +46,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
+        enabled: process.env.RPC_NODE !== undefined,
         url: process.env.RPC_NODE || '',
       },
       chainId: Number(process.env.CHAIN_ID) || 1,
