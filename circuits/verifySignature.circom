@@ -29,7 +29,6 @@ template PubkeyHasher(k) {
 }
 
 
-
 template VerifySignature(n, k) {
     // Public signal
     signal input pubkeyHash;

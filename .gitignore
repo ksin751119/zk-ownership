@@ -18,3 +18,4 @@ artifacts
 # Foundry build directory and cache
 out/
 forge-cache/
+ptau/

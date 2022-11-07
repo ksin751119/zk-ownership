@@ -52,6 +52,8 @@ describe('Verify Signature', function () {
     const sArray = bigintToArray(64, 4, sBigint);
     const msgHashBight = BigInt(msgHash);
     const msghashArray = bigintToArray(64, 4, msgHashBight);
+    console.log('msghash', msgHash);
+    console.log('msghashArray', msghashArray);
 
     // Generate wintness
     const witness = await circuit.calculateWitness({
