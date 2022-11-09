@@ -1,9 +1,0 @@
-@ensdomains/=node_modules/@ensdomains/
-@openzeppelin/=node_modules/@openzeppelin/
-abdk-libraries-solidity/=node_modules/abdk-libraries-solidity/
-eth-gas-reporter/=node_modules/eth-gas-reporter/
-hardhat-deploy/=node_modules/hardhat-deploy/
-hardhat/=node_modules/hardhat/
-forge-std/=foundry-lib/forge-std/src/
-ds-test/=foundry-lib/forge-std/lib/ds-test/src/
-contracts/=contracts/

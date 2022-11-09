@@ -1,10 +1,8 @@
-pragma circom 2.0.2;
+pragma circom 2.0.6;
 include "../node_modules/circomlib/circuits/pedersen.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "./circom-ecdsa-circuits/ecdsa.circom";
 
-
-// computes Pedersen(pubkey[0], pubkey[1])
 template PubkeyHasher(k) {
     signal input pubkey[2][k];
     signal input pubkeyHash;
@@ -18,7 +16,6 @@ template PubkeyHasher(k) {
         pubkeyBits[1][i].in <== pubkey[1][i];
     }
 
-    component pubkeyNum = Bits2Num(512);
     for (var i = 0; i < 64; i++) {
          for (var j = 0; j < k; j++) {
             pubkeyHasher.in[i+(j*64)] <== pubkeyBits[1][j].out[i];
@@ -29,7 +26,7 @@ template PubkeyHasher(k) {
 }
 
 
-template VerifySignature(n, k) {
+template OwnershipVerify(n, k) {
     // Public signal
     signal input pubkeyHash;
     signal input msghash[k];
@@ -38,6 +35,7 @@ template VerifySignature(n, k) {
     signal input r[k];
     signal input s[k];
     signal input pubkey[2][k];
+
 
     // Compare pubkey hash
     component hasher = PubkeyHasher(k);
@@ -60,3 +58,6 @@ template VerifySignature(n, k) {
     // Should be 1 if signature is correct
     ecdsaVerifier.result === 1;
 }
+
+
+component main {public [pubkeyHash, msghash]} = OwnershipVerify(64, 4);

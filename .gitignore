@@ -14,8 +14,4 @@ artifacts
 
 # lol macs
 .DS_Store
-
-# Foundry build directory and cache
-out/
-forge-cache/
 ptau/
