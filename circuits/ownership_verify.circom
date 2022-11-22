@@ -58,6 +58,3 @@ template OwnershipVerify(n, k) {
     // Should be 1 if signature is correct
     ecdsaVerifier.result === 1;
 }
-
-
-component main {public [pubkeyHash, msghash]} = OwnershipVerify(64, 4);

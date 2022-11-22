@@ -3,7 +3,7 @@ set -e
 
 PHASE1=../circuits/pot21_final.ptau
 BUILD_DIR=../build
-CIRCUIT_NAME=../circuits/ownership
+CIRCUIT_NAME=ownership
 
 if [ -f "$PHASE1" ]; then
     echo "Found Phase 1 ptau file"
@@ -20,16 +20,11 @@ fi
 echo "****COMPILING CIRCUIT****"
 start=`date +%s`
 set -x
-circom "$CIRCUIT_NAME".circom --r1cs --wasm --sym --c --wat --output "$BUILD_DIR"
+circom ../circuits/"$CIRCUIT_NAME".circom --r1cs --wasm --sym --c --wat --output "$BUILD_DIR"
 { set +x; } 2>/dev/null
 end=`date +%s`
 echo "DONE ($((end-start))s)"
 
-echo "****GENERATING WITNESS FOR SAMPLE INPUT****"
-start=`date +%s`
-node "$BUILD_DIR"/"$CIRCUIT_NAME"_js/generate_witness.js "$BUILD_DIR"/"$CIRCUIT_NAME"_js/"$CIRCUIT_NAME".wasm input_verify.json "$BUILD_DIR"/witness.wtns
-end=`date +%s`
-echo "DONE ($((end-start))s)"
 
 echo "****GENERATING ZKEY 0****"
 start=`date +%s`

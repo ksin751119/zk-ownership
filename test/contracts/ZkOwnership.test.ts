@@ -9,7 +9,7 @@ import { Verifier, ZkOwnership, ServiceMock } from '../../typechain';
 import { bigNumberToBigIntArray, formatProofForVerifierContract, simpleEncode } from '../utils/utils';
 
 const buildPath = '../../build';
-const circuitName = 'ownership_verify';
+const circuitName = 'ownership';
 
 describe('Verifier', function () {
   let babyJub: any;
@@ -53,10 +53,6 @@ describe('Verifier', function () {
 
     circuitWasmPath = path.join(__dirname, buildPath, `${circuitName}_js`, `${circuitName}.wasm`);
     zkeyPath = path.join(__dirname, buildPath, `${circuitName}.zkey`);
-
-    console.log('service', service.address);
-    console.log('verifier', verifier.address);
-    console.log('zkOwnership', zkOwnership.address);
   });
 
   // `beforeEach` will run before each test, re-deploying the contract every

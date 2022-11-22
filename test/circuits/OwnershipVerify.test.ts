@@ -22,7 +22,7 @@ describe('ownership verify', function () {
     pedersen = await buildPedersenHash();
     F = babyJub.F;
 
-    circuit = await wasmTester(path.join(__dirname, '../../circuits', 'ownership_verify.circom'), {
+    circuit = await wasmTester(path.join(__dirname, 'test_ownership_verify.circom'), {
       output: './build',
     });
   });
@@ -60,7 +60,7 @@ describe('ownership verify', function () {
     await circuit.checkConstraints(witness);
   });
 
-  it.only('should fail: wrong msgHash', async () => {
+  it('should fail: wrong msgHash', async () => {
     // Get pedersen hash of pubkey
     const pubkey = owner.publicKey;
     const pubkeyData = Buffer.from(pubkey.substring(4), 'hex').reverse(); // Remove "0x4b" at the begin of pubkey

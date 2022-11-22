@@ -15,3 +15,4 @@ artifacts
 # lol macs
 .DS_Store
 ptau/
+*.ptau

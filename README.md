@@ -21,4 +21,23 @@ By using a private key off-chain, users can produce the proof and interact with 
 
 ---
 
-## Building keys and witness generation files
+## Building verifier contract and proof
+
+### Build verifier contract
+
+1. `mkdir build`
+2. Download `pot21_final.ptau` to `circuits` folder or generate it by yourself
+3. `npm run build:verify`
+
+### Generate proof
+
+1. Update the inputs in `scripts/run_proof.ts`
+2. `npx hardhat run scripts/run_proof.ts`
+
+---
+
+TODO:
+
+- [ ] To create pubkeyHash, add a nullifier, and store it on the chain.
+- [ ] To prevent overflow signal maximum value, split pubkeyHash to input singal[2]
+- [ ] To speed up the generation of proof, switch from ECDSA to EDDSA.
