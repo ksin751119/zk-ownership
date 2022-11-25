@@ -20,10 +20,6 @@
     "type": "git",
     "url": "git@garage.dinngo.co:dinngo3/zk-ownership.git"
   },
-  "engines": {
-    "node": "16.18.0",
-    "npm": "8.19.2"
-  },
   "author": "DINNGO",
   "license": "MIT",
   "dependencies": {
