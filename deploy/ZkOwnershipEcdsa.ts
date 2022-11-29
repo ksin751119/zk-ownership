@@ -19,8 +19,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const h = pedersen.hash(pubkeyData);
   const hP = babyJub.unpackPoint(h);
 
-  const verifier = await deployments.get('Verifier');
-  await deploy('ZkOwnership', {
+  const verifier = await deployments.get('ECDSAVerifier');
+  await deploy('ZkOwnershipECDSA', {
     from: deployer,
     args: [verifier.address, BigNumber.from(F.toObject(hP[0]))],
     log: true,
@@ -29,5 +29,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 
-func.tags = ['ZkOwnership'];
-func.dependencies = ['Verifier'];
+func.tags = ['ZkOwnershipECDSA'];
+func.dependencies = ['ECDSAVerifier'];

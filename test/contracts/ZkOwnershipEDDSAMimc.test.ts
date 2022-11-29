@@ -1,13 +1,13 @@
 import path from 'path';
 import { expect } from 'chai';
 import { ethers, deployments } from 'hardhat';
-import { Wallet, BigNumber, Signature } from 'ethers';
+import { Wallet, BigNumber } from 'ethers';
 import { groth16 } from 'snarkjs';
 import { buildBabyjub, buildEddsa, buildMimc7 } from 'circomlibjs';
-import { EddsaMimcVerifier, ZkOwnershipEddsaMimc, ServiceMock } from '../../typechain';
+import { EDDSAMIMCVerifier, ZkOwnershipEDDSAMIMC, ServiceMock } from '../../typechain';
 import { bigNumberToBigIntArray, formatProofForVerifierContract, simpleEncode } from '../utils/utils';
 
-const buildPath = '../../build';
+const buildPath = '../../public';
 const circuitName = 'ownership_eddsa_mimc';
 const eddsaSignatureMsg = 'EDDSA Private Key';
 
@@ -19,8 +19,8 @@ describe('Ownership eddsa mimc verifier', function () {
   let owner: Wallet;
   let relayer: Wallet;
 
-  let verifier: EddsaMimcVerifier;
-  let zkOwnership: ZkOwnershipEddsaMimc;
+  let verifier: EDDSAMIMCVerifier;
+  let zkOwnership: ZkOwnershipEDDSAMIMC;
   let service: ServiceMock;
 
   let circuitWasmPath: string;
@@ -47,17 +47,17 @@ describe('Ownership eddsa mimc verifier', function () {
     const pubkeyY = F.toObject(pubKey[1]);
 
     // Deploy contracts
-    verifier = await (await ethers.getContractFactory('EddsaMimcVerifier')).deploy();
+    verifier = await (await ethers.getContractFactory('EDDSAMIMCVerifier')).deploy();
     await verifier.deployed();
     zkOwnership = await (
-      await ethers.getContractFactory('ZkOwnershipEddsaMimc')
+      await ethers.getContractFactory('ZkOwnershipEDDSAMIMC')
     ).deploy(verifier.address, pubkeyX, pubkeyY);
     await zkOwnership.deployed();
 
     service = await (await ethers.getContractFactory('ServiceMock')).deploy(zkOwnership.address);
     await service.deployed();
 
-    circuitWasmPath = path.join(__dirname, buildPath, `${circuitName}_js`, `${circuitName}.wasm`);
+    circuitWasmPath = path.join(__dirname, buildPath, `${circuitName}.wasm`);
     zkeyPath = path.join(__dirname, buildPath, `${circuitName}.zkey`);
   });
 
@@ -85,8 +85,8 @@ describe('Ownership eddsa mimc verifier', function () {
 
   it('change owner', async () => {
     const other = ethers.Wallet.createRandom(); // use it for public key
-    const otherEddsaKey = await other.signMessage(eddsaSignatureMsg);
-    const otherPubKey = eddsa.prv2pub(otherEddsaKey);
+    const otherEDDSAKey = await other.signMessage(eddsaSignatureMsg);
+    const otherPubKey = eddsa.prv2pub(otherEDDSAKey);
     const otherPubKeyX = F.toObject(otherPubKey[0]);
     const otherPubKeyY = F.toObject(otherPubKey[1]);
 
@@ -141,13 +141,13 @@ describe('Ownership eddsa mimc verifier', function () {
   it('should revert: wrong signature', async () => {
     // Get proof
     const other = ethers.Wallet.createRandom();
-    const otherEddsaKey = await other.signMessage(eddsaSignatureMsg);
+    const otherEDDSAKey = await other.signMessage(eddsaSignatureMsg);
     const nonce = await zkOwnership.nonce();
     const sValue = ethers.BigNumber.from(123);
     const execData = simpleEncode('setValue(uint256)', [sValue]);
     const to = service.address;
     const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
-    const { proof } = await generateProof(msg, otherEddsaKey);
+    const { proof } = await generateProof(msg, otherEDDSAKey);
 
     // Execute zk-ownership contract
     const newExecData = simpleEncode('setValue(uint256)', [ethers.BigNumber.from(456)]);

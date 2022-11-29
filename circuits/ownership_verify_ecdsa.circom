@@ -26,7 +26,7 @@ template PubkeyHasher(k) {
 }
 
 
-template OwnershipVerify(n, k) {
+template OwnershipVerifyECDSA(n, k) {
     // Public signal
     signal input pubkeyHash;
     signal input msghash[k];

@@ -17,17 +17,16 @@ By using a private key off-chain, users can produce the proof and interact with 
 - Run `yarn` at the top level to install npm dependencies (`snarkjs` and `circomlib`).
 - Also need `circom` version `>= 2.0.2` and `< 2.0.9` on your system. Installation instructions [here](https://docs.circom.io/getting-started/installation/).
   - [Circom-ecdsa](https://github.com/0xPARC/circom-ecdsa) is the library used by ZK-OWNERSHIP to validate ECDSA signatures. But circom-ecdsa does not support versions higher than 2.0.9
-- Need to download a Powers of Tau file with `2^21` constraints and copy it into the `circuits` subdirectory of the project, with the name `pot21_final.ptau`. You can download and copy Powers of Tau files from the Hermez trusted setup from [this repository](https://github.com/iden3/snarkjs#7-prepare-phase-2).
+- Need to download a Powers of Tau file and copy it into the `pot` directory of the project, with the name `potX_final.ptau`. You can download and copy Powers of Tau files from the Hermez trusted setup from [this repository](https://github.com/iden3/snarkjs#7-prepare-phase-2).
+  - ECDSA: `pot21_final.ptau`
+  - EDDSA: `pot14_final.ptau`
 
 ---
 
-## Building verifier contract and proof
+### Building verifier contract
 
-### Build verifier contract
-
-1. `mkdir build`
-2. Download `pot21_final.ptau` to `circuits` folder or generate it by yourself
-3. `npm run build:verify`
+- `npm run build:ownership-ecdsa`- compiles the `ownership_ecdsa` circom
+- `npm run build:ownership-eddsa`- compiles the `ownership_ecdsa_mimc` circom
 
 ### Generate proof
 
@@ -39,5 +38,5 @@ By using a private key off-chain, users can produce the proof and interact with 
 TODO:
 
 - [ ] To create pubkeyHash, add a nullifier, and store it on the chain.
-- [ ] To prevent overflow signal maximum value, split pubkeyHash to input singal[2]
-- [ ] To speed up the generation of proof, switch from ECDSA to EDDSA.
+- [x] To prevent overflow signal maximum value, split pubkeyHash to input singal[2]
+- [x] To speed up the generation of proof, switch from ECDSA to EDDSA.

@@ -1,8 +1,8 @@
 import path from 'path';
-import { buildPedersenHash, buildBabyjub, buildEddsa, buildMimc7 } from 'circomlibjs';
+import { buildBabyjub, buildEddsa, buildMimc7 } from 'circomlibjs';
 import { wasm as wasmTester } from 'circom_tester';
 import { Wallet, BigNumber } from 'ethers';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { bigNumberToBigIntArray } from '../utils/utils';
 
@@ -22,7 +22,6 @@ describe('eddsa mimc', function () {
     owner = ethers.Wallet.createRandom();
     eddsa = await buildEddsa();
     babyJub = await buildBabyjub();
-    // pedersen = await buildPedersenHash();
     mimc7 = await buildMimc7();
     F = babyJub.F;
 

@@ -2,17 +2,16 @@
 pragma solidity 0.8.10;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {IVerifier} from "./IVerifier.sol";
+import {IEDDSAMIMCVerifier} from "./IEDDSAMIMCVerifier.sol";
 
 /// @title The fund action task executor
-contract ZkOwnership {
+contract ZkOwnershipEDDSAMIMC {
     using Address for address;
-    using ECDSA for bytes32;
 
     uint256 public nonce;
-    uint256 public pubkeyHash;
-    IVerifier public immutable verifier;
+    uint256 public pubkeyX;
+    uint256 public pubkeyY;
+    IEDDSAMIMCVerifier public immutable verifier;
 
     struct ProofsRelated {
         uint256[2] a;
@@ -20,9 +19,14 @@ contract ZkOwnership {
         uint256[2] c;
     }
 
-    constructor(IVerifier verifier_, uint256 pubkeyHash_) {
+    constructor(
+        IEDDSAMIMCVerifier verifier_,
+        uint256 pubkeyX_,
+        uint256 pubkeyY_
+    ) {
         verifier = verifier_;
-        pubkeyHash = pubkeyHash_;
+        pubkeyX = pubkeyX_;
+        pubkeyY = pubkeyY_;
     }
 
     // / @notice Task execution function, will charge execution fee first.
@@ -37,7 +41,7 @@ contract ZkOwnership {
         ProofsRelated memory proof = _unpackProof(proof_);
 
         // Get public input
-        uint256[5] memory input = _getPublicInput(to_, execData_);
+        uint256[6] memory input = _getPublicInput(to_, execData_);
 
         // Verify proof
         require(verifier.verifyProof(proof.a, proof.b, proof.c, input), "Verify proof fail.");
@@ -48,11 +52,13 @@ contract ZkOwnership {
         nonce++;
     }
 
-    // @notice set pubkey hash. Update only by address(this)
-    // @param pubkeyHash_ New zk proof of ownership hash.
-    function setPubkeyHash(uint256 pubkeyHash_) external payable {
+    // @notice set pubkey of EDDSA. Update only by address(this)
+    // @param pubkeyX_ New zk proof of pubkeyX.
+    // @param pubkeyY_ New zk proof of pubkeyY.
+    function setPubkey(uint256 newPubkeyX_, uint256 newPubkeyY_) external payable {
         require(msg.sender == address(this), "Not permitted");
-        pubkeyHash = pubkeyHash_;
+        pubkeyX = newPubkeyX_;
+        pubkeyY = newPubkeyY_;
     }
 
     // ----------------
@@ -68,16 +74,18 @@ contract ZkOwnership {
             });
     }
 
-    function _getPublicInput(address to_, bytes calldata execData_) internal view returns (uint256[5] memory) {
-        bytes32 msgHash = keccak256(abi.encodePacked(nonce, to_, execData_)).toEthSignedMessageHash();
-        uint256[5] memory input;
+    function _getPublicInput(address to_, bytes calldata execData_) internal view returns (uint256[6] memory) {
+        bytes32 msgHash = keccak256(abi.encodePacked(nonce, to_, execData_));
         bytes16 halfL = bytes16(msgHash);
         bytes16 halfR = bytes16(uint128(uint256(msgHash)));
-        input[0] = pubkeyHash;
-        input[1] = uint256(uint64(bytes8(uint64(uint128(halfR)))));
-        input[2] = uint256(uint64(bytes8(halfR)));
-        input[3] = uint256(uint64(bytes8(uint64(uint128(halfL)))));
-        input[4] = uint256(uint64(bytes8(halfL)));
+
+        uint256[6] memory input;
+        input[0] = pubkeyX;
+        input[1] = pubkeyY;
+        input[2] = uint256(uint64(bytes8(uint64(uint128(halfR)))));
+        input[3] = uint256(uint64(bytes8(halfR)));
+        input[4] = uint256(uint64(bytes8(uint64(uint128(halfL)))));
+        input[5] = uint256(uint64(bytes8(halfL)));
         return input;
     }
 }

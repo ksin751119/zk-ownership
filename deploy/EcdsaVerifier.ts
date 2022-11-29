@@ -6,7 +6,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy('Verifier', {
+  await deploy('ECDSAVerifier', {
     from: deployer,
     args: [],
     log: true,
@@ -15,4 +15,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 
-func.tags = ['Verifier'];
+func.tags = ['ECDSAVerifier'];

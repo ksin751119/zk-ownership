@@ -6,7 +6,8 @@
   "scripts": {
     "test": "yarn build && npx hardhat test",
     "build": "scripts/build.sh",
-    "build:verify": "cd ./scripts && ./build_verify.sh",
+    "build:ownership-eddsa": "cd ./scripts && ./build_verify.sh ownership_eddsa_mimc 14 EDDSAMIMC",
+    "build:ownership-ecdsa": "cd ./scripts && ./build_verify.sh ownership_ecdsa 21 ECDSA",
     "check-compile": "scripts/check.sh",
     "compile": "npx hardhat compile",
     "coverage": "npx hardhat coverage",
@@ -14,7 +15,8 @@
     "lint:prettier": "scripts/prettier.sh",
     "deploy": "npx hardhat deploy",
     "deploy:beta": "hardhat deploy --network beta",
-    "deploy:prod": "hardhat deploy --network prod"
+    "deploy:prod": "hardhat deploy --network prod",
+    "prettify": "prettier --write ."
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,8 @@
   "license": "MIT",
   "dependencies": {
     "@openzeppelin/contracts": "4.5.0",
-    "circomlib": "^2.0.5"
+    "circomlib": "^2.0.5",
+    "prettify": "^0.1.7"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",

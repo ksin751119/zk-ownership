@@ -5,21 +5,21 @@ import { Wallet, BigNumber, Signature } from 'ethers';
 import { groth16 } from 'snarkjs';
 import { buildPedersenHash, buildBabyjub } from 'circomlibjs';
 import { utils } from 'ffjavascript';
-import { Verifier, ZkOwnership, ServiceMock } from '../../typechain';
+import { ECDSAVerifier, ZkOwnershipECDSA, ServiceMock } from '../../typechain';
 import { bigNumberToBigIntArray, formatProofForVerifierContract, simpleEncode } from '../utils/utils';
 
-const buildPath = '../../build';
-const circuitName = 'ownership';
+const buildPath = '../../public';
+const circuitName = 'ownership_ecdsa';
 
-describe('Verifier', function () {
+describe('ZkOwnershipECDSA', function () {
   let babyJub: any;
   let pedersen: any;
   let F: any;
   let owner: Wallet;
   let relayer: Wallet;
 
-  let verifier: Verifier;
-  let zkOwnership: ZkOwnership;
+  let verifier: ECDSAVerifier;
+  let zkOwnership: ZkOwnershipECDSA;
   let service: ServiceMock;
 
   let circuitWasmPath: string;
@@ -38,20 +38,22 @@ describe('Verifier', function () {
     owner = ethers.Wallet.createRandom(); // use it for public key
     [relayer] = await (ethers as any).getSigners();
 
-    verifier = await (await ethers.getContractFactory('Verifier')).deploy();
+    verifier = await (await ethers.getContractFactory('ECDSAVerifier')).deploy();
     await verifier.deployed();
 
     const pubkey = owner.publicKey.substring(4); // remove 0x4b
     const pubkeyData = Buffer.from(pubkey, 'hex').reverse();
     const h = pedersen.hash(pubkeyData);
     const hP = babyJub.unpackPoint(h);
-    zkOwnership = await (await ethers.getContractFactory('ZkOwnership')).deploy(verifier.address, F.toObject(hP[0]));
+    zkOwnership = await (
+      await ethers.getContractFactory('ZkOwnershipECDSA')
+    ).deploy(verifier.address, F.toObject(hP[0]));
     await zkOwnership.deployed();
 
     service = await (await ethers.getContractFactory('ServiceMock')).deploy(zkOwnership.address);
     await service.deployed();
 
-    circuitWasmPath = path.join(__dirname, buildPath, `${circuitName}_js`, `${circuitName}.wasm`);
+    circuitWasmPath = path.join(__dirname, buildPath, `${circuitName}.wasm`);
     zkeyPath = path.join(__dirname, buildPath, `${circuitName}.zkey`);
   });
 
@@ -69,7 +71,6 @@ describe('Verifier', function () {
     const to = service.address;
     const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
     const sig = ethers.utils.splitSignature(await owner.signMessage(ethers.utils.arrayify(msg)));
-
     const { proof } = await generateProof(msg, sig, owner.publicKey);
 
     // Execute zk-ownership contract

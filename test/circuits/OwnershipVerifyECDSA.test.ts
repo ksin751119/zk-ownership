@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { bigNumberToBigIntArray } from '../utils/utils';
 
-describe('ownership verify', function () {
+describe('ownership ecdsa verify', function () {
   let babyJub: any;
   let pedersen: any;
   let F: any;
@@ -22,7 +22,7 @@ describe('ownership verify', function () {
     pedersen = await buildPedersenHash();
     F = babyJub.F;
 
-    circuit = await wasmTester(path.join(__dirname, 'test_ownership_verify.circom'), {
+    circuit = await wasmTester(path.join(__dirname, 'test_ownership_verify_ecdsa.circom'), {
       output: './build',
     });
   });
