@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers';
+import { BigNumber, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 const hre = require('hardhat');
 
@@ -40,6 +40,13 @@ export function simpleEncode(_func: string, params: any) {
   const data = iface.encodeFunctionData(_func, params);
 
   return data;
+}
+
+export async function sendEther(sender: Signer, to: string, value: BigNumber) {
+  await sender.sendTransaction({
+    to: to,
+    value: value,
+  });
 }
 
 export function formatProofForVerifierContract(

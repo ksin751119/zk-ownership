@@ -36,18 +36,19 @@ contract ZkOwnershipEDDSAMIMC {
     function execWithProof(
         uint256[8] memory proof_,
         address to_,
-        bytes calldata execData_
+        bytes calldata execData_,
+        uint256 value_
     ) external payable {
         ProofsRelated memory proof = _unpackProof(proof_);
 
         // Get public input
-        uint256[6] memory input = _getPublicInput(to_, execData_);
+        uint256[6] memory input = _getPublicInput(to_, execData_, value_);
 
         // Verify proof
         require(verifier.verifyProof(proof.a, proof.b, proof.c, input), "Verify proof fail.");
 
         // Execute action by call
-        to_.functionCallWithValue(execData_, msg.value, "execWithProof: low-level call with value failed");
+        to_.functionCallWithValue(execData_, value_, "execWithProof: low-level call with value failed");
 
         nonce++;
     }
@@ -60,6 +61,8 @@ contract ZkOwnershipEDDSAMIMC {
         pubkeyX = newPubkeyX_;
         pubkeyY = newPubkeyY_;
     }
+
+    receive() external payable {}
 
     // ----------------
     // --- Internal ---
@@ -74,8 +77,12 @@ contract ZkOwnershipEDDSAMIMC {
             });
     }
 
-    function _getPublicInput(address to_, bytes calldata execData_) internal view returns (uint256[6] memory) {
-        bytes32 msgHash = keccak256(abi.encodePacked(nonce, to_, execData_));
+    function _getPublicInput(
+        address to_,
+        bytes calldata execData_,
+        uint256 value_
+    ) internal view returns (uint256[6] memory) {
+        bytes32 msgHash = keccak256(abi.encodePacked(nonce, to_, execData_, value_));
         bytes16 halfL = bytes16(msgHash);
         bytes16 halfR = bytes16(uint128(uint256(msgHash)));
 

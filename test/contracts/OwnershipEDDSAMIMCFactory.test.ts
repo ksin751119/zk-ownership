@@ -5,7 +5,7 @@ import { Wallet, BigNumber } from 'ethers';
 import { groth16 } from 'snarkjs';
 import { buildBabyjub, buildEddsa, buildMimc7 } from 'circomlibjs';
 import { EDDSAMIMCVerifier, ZkOwnershipEDDSAMIMC, ServiceMock, OwnershipEDDSAMIMCFactory } from '../../typechain';
-import { bigNumberToBigIntArray, formatProofForVerifierContract, simpleEncode } from '../utils/utils';
+import { bigNumberToBigIntArray, formatProofForVerifierContract, simpleEncode, sendEther } from '../utils/utils';
 
 const buildPath = '../../public';
 const circuitName = 'ownership_eddsa_mimc';
@@ -88,104 +88,20 @@ describe('OwnershipEDDSAMIMCFactory', function () {
     const sValue = ethers.BigNumber.from(123);
     const execData = simpleEncode('setValue(uint256)', [sValue]);
     const to = service.address;
-    const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
+    const value = ethers.utils.parseUnits('1', 'ether');
+    const msg = ethers.utils.solidityKeccak256(
+      ['uint256', 'address', 'bytes', 'uint256'],
+      [nonce, to, execData, value]
+    );
     const { proof } = await generateProof(msg, eddsaKey);
 
+    // Send ether to zk ownership contract
+    await sendEther(relayer, zkOwnership.address, ethers.utils.parseUnits('10', 'ether'));
+
     // Execute zk-ownership contract
-    await zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, execData);
+    await zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, execData, value);
     expect(await service.value()).to.be.eq(sValue);
     expect(await zkOwnership.nonce()).to.be.eq(nonce.add(BigNumber.from(1)));
-  });
-
-  it('change owner', async () => {
-    const other = ethers.Wallet.createRandom(); // use it for public key
-    const otherEDDSAKey = await other.signMessage(zkOwnership.address);
-    const otherPubKey = eddsa.prv2pub(otherEDDSAKey);
-    const otherPubKeyX = F.toObject(otherPubKey[0]);
-    const otherPubKeyY = F.toObject(otherPubKey[1]);
-
-    // Get proof
-    const eddsaKey = await owner.signMessage(zkOwnership.address);
-    const nonce = await zkOwnership.nonce();
-    const execData = simpleEncode('setPubkey(uint256,uint256)', [otherPubKeyX, otherPubKeyY]);
-    const to = zkOwnership.address;
-    const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
-    const { proof } = await generateProof(msg, eddsaKey);
-
-    // Execute zk-ownership contract
-    await zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, execData);
-    expect(await zkOwnership.pubkeyX()).to.be.eq(otherPubKeyX);
-    expect(await zkOwnership.pubkeyY()).to.be.eq(otherPubKeyY);
-    expect(await zkOwnership.nonce()).to.be.eq(nonce.add(BigNumber.from(1)));
-  });
-
-  it('should revert: wrong nonce', async () => {
-    // Get proof
-    const eddsaKey = await owner.signMessage(zkOwnership.address);
-    const nonce = (await zkOwnership.nonce()).add(BigNumber.from(1));
-    const sValue = ethers.BigNumber.from(123);
-    const execData = simpleEncode('setValue(uint256)', [sValue]);
-    const to = service.address;
-    const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
-    const { proof } = await generateProof(msg, eddsaKey);
-
-    // Execute zk-ownership contract
-    await expect(
-      zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, execData)
-    ).to.be.revertedWith('Verify proof fail.');
-  });
-
-  it('should revert: wrong execData', async () => {
-    // Get proof
-    const eddsaKey = await owner.signMessage(zkOwnership.address);
-    const nonce = await zkOwnership.nonce();
-    const sValue = ethers.BigNumber.from(123);
-    const execData = simpleEncode('setValue(uint256)', [sValue]);
-    const to = service.address;
-    const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
-    const { proof } = await generateProof(msg, eddsaKey);
-
-    // Execute zk-ownership contract
-    const wrongExecData = simpleEncode('setValue(uint256)', [ethers.BigNumber.from(456)]);
-    await expect(
-      zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, wrongExecData)
-    ).to.be.revertedWith('Verify proof fail.');
-  });
-
-  it('should revert: wrong signature', async () => {
-    // Get proof
-    const other = ethers.Wallet.createRandom();
-    const otherEDDSAKey = await other.signMessage(zkOwnership.address);
-    const nonce = await zkOwnership.nonce();
-    const sValue = ethers.BigNumber.from(123);
-    const execData = simpleEncode('setValue(uint256)', [sValue]);
-    const to = service.address;
-    const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
-    const { proof } = await generateProof(msg, otherEDDSAKey);
-
-    // Execute zk-ownership contract
-    const newExecData = simpleEncode('setValue(uint256)', [ethers.BigNumber.from(456)]);
-    await expect(
-      zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, newExecData)
-    ).to.be.revertedWith('Verify proof fail.');
-  });
-
-  it('should revert: wrong eddsa signature message', async () => {
-    // Get proof
-    const other = ethers.Wallet.createRandom();
-    const otherEDDSAKey = await other.signMessage('Invalid EDDSA Private Key');
-    const nonce = await zkOwnership.nonce();
-    const sValue = ethers.BigNumber.from(123);
-    const execData = simpleEncode('setValue(uint256)', [sValue]);
-    const to = service.address;
-    const msg = ethers.utils.solidityKeccak256(['uint256', 'address', 'bytes'], [nonce, to, execData]);
-    const { proof } = await generateProof(msg, otherEDDSAKey);
-
-    // Execute zk-ownership contract
-    const newExecData = simpleEncode('setValue(uint256)', [ethers.BigNumber.from(456)]);
-    await expect(
-      zkOwnership.connect(relayer).execWithProof(formatProofForVerifierContract(proof), to, newExecData)
-    ).to.be.revertedWith('Verify proof fail.');
   });
 
   async function generateProof(msg: any, eddsaKey: any) {
