@@ -34,9 +34,3 @@ By using a private key off-chain, users can produce the proof and interact with 
 2. `npx hardhat run scripts/run_proof.ts`
 
 ---
-
-TODO:
-
-- [ ] To create pubkeyHash, add a nullifier, and store it on the chain.
-- [x] To prevent overflow signal maximum value, split pubkeyHash to input singal[2]
-- [x] To speed up the generation of proof, switch from ECDSA to EDDSA.
