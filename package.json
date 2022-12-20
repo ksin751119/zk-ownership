@@ -1,7 +1,7 @@
 {
   "name": "zk-ownership",
   "version": "1.0.0",
-  "description": "Funds contract implementation",
+  "description": "ZK ownership contract implementation",
   "main": "hardhat.config.js",
   "scripts": {
     "test": "yarn build && npx hardhat test",
